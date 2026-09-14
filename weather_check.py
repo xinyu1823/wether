@@ -1,77 +1,53 @@
 import os
 import requests
-from datetime import datetime
-from zoneinfo import ZoneInfo
 
-LATITUDE = 25.0375
-LONGITUDE = 121.5637
-RAIN_THRESHOLD = 70
 
-token = os.environ["TELEGRAM_BOT_TOKEN"]
-chat_id = os.environ["TELEGRAM_CHAT_ID"]
-
-url = "https://api.open-meteo.com/v1/forecast"
-
-params = {
-    "latitude": LATITUDE,
-    "longitude": LONGITUDE,
-    "daily": "precipitation_probability_max,temperature_2m_max,temperature_2m_min",
-    "timezone": "Asia/Taipei",
-    "forecast_days": 1
-}
-
-print("正在取得天氣資料...")
-
-response = requests.get(url, params=params, timeout=30)
-response.raise_for_status()
-
-weather = response.json()
-
-rain_probability = weather["daily"]["precipitation_probability_max"][0]
-max_temperature = weather["daily"]["temperature_2m_max"][0]
-min_temperature = weather["daily"]["temperature_2m_min"][0]
-
-taiwan = ZoneInfo("Asia/Taipei")
-today = datetime.now(taiwan).strftime("%Y-%m-%d")
-
-print("日期:", today)
-print("最高降雨機率:", rain_probability, "%")
-print("最高溫:", max_temperature, "°C")
-print("最低溫:", min_temperature, "°C")
-
-if rain_probability >= RAIN_THRESHOLD:
-    print("降雨機率超過 70%，發送 Telegram！")
-
-    message = (
-        "☔ 記得帶傘喔！\n\n"
-        "📅 日期：" + today + "\n"
-        "🌧️ 最高降雨機率：" + str(rain_probability) + "%\n"
-        "🌡️ 最高溫：" + str(max_temperature) + "°C\n"
-        "🌡️ 最低溫：" + str(min_temperature) + "°C\n\n"
-        "出門記得帶雨具 ☂️"
-    )
-
-    telegram_url = "https://api.telegram.org/bot" + token + "/sendMessage"
-
-    telegram_data = {
-        "chat_id": chat_id,
-        "text": message
+def get_weather():
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": 25.0375,
+        "longitude": 121.5637,
+        "daily": "precipitation_probability_max,temperature_2m_max,temperature_2m_min",
+        "timezone": "Asia/Taipei",
     }
 
-    telegram_response = requests.post(
-        telegram_url,
-        data=telegram_data,
-        timeout=30
-    )
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
 
-    telegram_response.raise_for_status()
+    today_rain_prob = data["daily"]["precipitation_probability_max"][0]
+    max_temp = data["daily"]["temperature_2m_max"][0]
+    min_temp = data["daily"]["temperature_2m_min"][0]
 
-    print("Telegram 通知成功！")
+    message = "🌧️ 今日氣象預報\n"
+    message += "溫度：" + str(min_temp) + "°C ~ " + str(max_temp) + "°C\n"
+    message += "最高降雨機率：" + str(today_rain_prob) + "%\n\n"
 
-else:
-    print("降雨機率低於 70%，不發送通知。")
+    if today_rain_prob >= 30:
+        message += "☔ 今天降雨機率高，出門記得帶傘！"
+    else:
+        message += "☀️ 今天降雨機率低，不需要帶傘～"
+
+    return message
+
+
+def send_telegram_msg(message):
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+
+    if not token or not chat_id:
+        print("缺少 Telegram Bot 設定，無法發送訊息")
+        return
+
+    tg_url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {"chat_id": chat_id, "text": message}
+
+    res = requests.post(tg_url, json=payload)
+    res.raise_for_status()
+    print("Telegram 訊息發送成功！")
+
 
 if __name__ == "__main__":
     msg = get_weather()
-    print(f"氣象資訊內容：\n{msg}")
+    print("氣象資訊內容：\n" + msg)
     send_telegram_msg(msg)
