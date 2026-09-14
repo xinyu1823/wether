@@ -3,7 +3,7 @@ import requests
 
 
 def get_weather():
-    url = "[https://api.open-meteo.com/v1/forecast](https://api.open-meteo.com/v1/forecast)"
+   url = "https://api.open-meteo.com/v1/forecast"
     params = {
         "latitude": 25.0375,
         "longitude": 121.5637,
