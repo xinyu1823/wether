@@ -4,7 +4,7 @@ import requests
 
 def get_weather():
    url = "https://api.open-meteo.com/v1/forecast"
-    params = {
+   params = {
         "latitude": 25.0375,
         "longitude": 121.5637,
         "daily": "precipitation_probability_max,temperature_2m_max,temperature_2m_min",
