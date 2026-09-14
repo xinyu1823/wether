@@ -18,10 +18,9 @@ def get_weather():
     today_rain_prob = data["daily"]["precipitation_probability_max"][0]
     max_temp = data["daily"]["temperature_2m_max"][0]
     min_temp = data["daily"]["temperature_2m_min"][0]
-
-    message = f"🌧️ 今日氣象預報\n"
-    message += f"溫度：{min_temp}°C ~ {max_temp}°C\n"
-    message += f"最高降雨機率：{today_rain_prob}%\n\n"
+    message = "🌧️ 今日氣象預報\n"
+    message += "溫度：" + str(min_temp) + "°C ~ " + str(max_temp) + "°C\n"
+    message += "最高降雨機率：" + str(today_rain_prob) + "%\n\n"
 
     if today_rain_prob >= 30:
         message += "☔ 今天降雨機率高，出門記得帶傘！"
