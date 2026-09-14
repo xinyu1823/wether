@@ -1,0 +1,47 @@
+```python
+import requests
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+# 桃園範例座標
+LATITUDE = 24.9937
+LONGITUDE = 121.3010
+
+# Open-Meteo API
+url = "https://api.open-meteo.com/v1/forecast"
+
+params = {
+    "latitude": LATITUDE,
+    "longitude": LONGITUDE,
+    "hourly": "precipitation_probability",
+    "timezone": "Asia/Taipei",
+    "forecast_days": 1
+}
+
+# 取得天氣資料
+response = requests.get(url, params=params, timeout=30)
+response.raise_for_status()
+
+weather = response.json()
+
+# 台灣日期
+taiwan = ZoneInfo("Asia/Taipei")
+today = datetime.now(taiwan).date()
+
+print(f"今天日期：{today}")
+
+# 取得今天每小時降雨機率
+rain_probabilities = weather["hourly"]["precipitation_probability"]
+
+# 找出今天最高降雨機率
+max_rain_probability = max(rain_probabilities)
+
+print(f"今天最高降雨機率：{max_rain_probability}%")
+
+# 判斷是否超過 70%
+if max_rain_probability >= 70:
+    print("☔ 記得帶傘喔！")
+else:
+    print("今天降雨機率低於 70%，不用發送通知。")
+```
+
